@@ -5,7 +5,8 @@ const PeerMsgType = {
 	Ready: 3,
 	ScheduleStart: 4,
 	BallUpdate: 5,
-	PaddleUpdate: 6
+	PaddleUpdate: 6,
+	Score: 7
 }
 
 let gameDataChannel;
@@ -57,6 +58,10 @@ class GameDataChannel{
 			}
 			case PeerMsgType.PaddleUpdate: {
 				this.handlePaddleUpdate(msg);
+				break;
+			}
+			case PeerMsgType.Score: {
+				this.handleScore(msg);
 				break;
 			}
 		}
@@ -114,6 +119,7 @@ class GameDataChannel{
 
 	handleSchduleStart(msg){
 		const now = new Date().getTime();
+		timeToStart = msg.startTime;
 		setTimeout(() => state = GAME_STATE.PLAYING, 
 		msg.startTime - now);
 		state = GAME_STATE.COUNTDOWN;
@@ -150,6 +156,21 @@ class GameDataChannel{
 				vel: vectorToCoordinates(ball.vel)
 			}
 		});
+	}
+
+	handleScore(msg){
+		lastScoreResult = msg.lastScoreResult;
+		lastScoreMillis = msg.lastScoreMillis;
+		resetGame();
+		state = GAME_STATE.SCORE_INTERVAL;
+	}
+
+	sendScore(lastScoreResult, lastScoreMillis){
+		this.sendToPeer({
+			type: PeerMsgType.Score,
+			lastScoreResult,
+			lastScoreMillis
+		})	
 	}
 	
 	sendToPeer(obj){

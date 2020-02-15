@@ -171,7 +171,7 @@ function waitingForOtherReady(){
 }
 
 function countDown(){
-	const timeLeft = (timeToStart - millis()) / 1000;
+	const timeLeft = (timeToStart - new Date().getTime()) / 1000;
 
 	const countDown = Math.round(timeLeft);
 
@@ -203,13 +203,18 @@ function playing(){
 		gameDataChannel.sendPaddleUpdate(paddles.right);
 	}
 
-	lastScoreResult = ball.scoreResult();
+	if(initiator){
+		lastScoreResult = ball.scoreResult();
+	
+		if(lastScoreResult !== SCORE_RESULT.NO_SCORE){
+			lastScoreMillis = new Date().getTime();
+			gameDataChannel.sendScore(lastScoreResult, lastScoreMillis);
+			state = GAME_STATE.SCORE_INTERVAL;
+			resetGame();
+		}
 
-	if(lastScoreResult !== SCORE_RESULT.NO_SCORE){
-		lastScoreMillis = millis();
-		state = GAME_STATE.SCORE_INTERVAL;
-		resetGame();
 	}
+
 
 	fill(0);
 	textSize(32)
@@ -217,7 +222,7 @@ function playing(){
 }
 
 function scoreInterval(){
-	const timeSinceScore = (millis() - lastScoreMillis) / 1000;
+	const timeSinceScore = (new Date().getTime() - lastScoreMillis) / 1000;
 
 	const countDown = Math.round(INTERVAL_TIME - timeSinceScore);
 
