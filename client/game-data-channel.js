@@ -3,8 +3,9 @@ const PeerMsgType = {
 	TimeAck: 1,
 	RTT: 2,
 	Ready: 3,
-	BallUpdate: 4,
-	PaddleUpdate: 5
+	ScheduleStart: 4,
+	BallUpdate: 5,
+	PaddleUpdate: 6
 }
 
 let gameDataChannel;
@@ -39,11 +40,15 @@ class GameDataChannel{
 			}
 			case PeerMsgType.RTT:{
 				this.rtt = msg.rtt;
-				//state = GAME_STATE.WAITING_FOR_OTHER_READY;
+				state = GAME_STATE.WAITING_FOR_START;
 				break;
 			}
 			case PeerMsgType.Ready: {
 				this.otherReadyResolve();
+				break;
+			}
+			case PeerMsgType.ScheduleStart: {
+				this.handleSchduleStart(msg);
 				break;
 			}
 			case PeerMsgType.BallUpdate: {
@@ -80,6 +85,7 @@ class GameDataChannel{
 				type: PeerMsgType.RTT,
 				rtt: this.rtt
 			})
+			state = GAME_STATE.WAITING_FOR_START;
 		}
 	}
 
@@ -95,12 +101,30 @@ class GameDataChannel{
 		});
 	}
 
+	scheduleStart(startDelay){
+		const startTime = new Date().getTime() + Math.max(this.rtt, startDelay * 1000);
+		this.sendToPeer({
+			type: PeerMsgType.ScheduleStart,
+			startTime
+		});
+		this.handleSchduleStart({
+			startTime
+		})
+	}
+
+	handleSchduleStart(msg){
+		const now = new Date().getTime();
+		setTimeout(() => state = GAME_STATE.PLAYING, 
+		msg.startTime - now);
+		state = GAME_STATE.COUNTDOWN;
+	}
+
 	handleBallUpdate(msg){
 		ball.peerUpdate(msg.ball);
 	}
 	
 	handlePaddleUpdate(msg){
-		if(userLeft){
+		if(initiator){
 			paddles.right.peerUpdate(msg.paddle);
 		} else {
 			paddles.left.peerUpdate(msg.paddle);

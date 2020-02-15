@@ -1,7 +1,7 @@
 let ball;
 let userID;
 let userPaddle;
-let userLeft;
+let initiator;
 let serverAddressInput;
 let userNameInput;
 let inputDiv;
@@ -13,16 +13,22 @@ const ENTER = 13;
 const SPACE = 32;
 const INTERVAL_TIME = 5;
 
+const START_DELAY = 10;
+
 const GAME_STATE = {
 	NAME_INPUT: 0,
 	WAITING_FOR_CONNECTION: 1,
 	TIME_SYNC: 2,
 	WAITING_FOR_START: 3,
 	WAITING_FOR_OTHER_READY: 4,
-	PLAYING: 5,
-	SCORE_INTERVAL: 6
+	WAITING_FOR_INITIATOR_START: 5,
+	COUNTDOWN: 6,
+	PLAYING: 7,
+	SCORE_INTERVAL: 8
 };
 
+
+let timeToStart;
 let state = GAME_STATE.NAME_INPUT;
 let lastScoreMillis;
 let lastScoreResult;
@@ -66,15 +72,14 @@ async function keyReleased(){
 					state = GAME_STATE.WAITING_FOR_CONNECTION;
 					Promise.all([messanger.numsReceieved, messanger.otherNameReceived])
 					.then(() => {
-						if(me.num > other.num){
+						initiator = me.num > other.num;
+						if(initiator){
 							setupGame(me.name, other.name);
 							userPaddle = paddles.left;
-							userLeft = true;
-							p2p = new P2P(messanger, true);
+							p2p = new P2P(messanger, initiator);
 						} else {
 							setupGame(other.name, me.name);
 							userPaddle = paddles.right;
-							userLeft = false;
 						}
 					})
 				} else {
@@ -85,16 +90,13 @@ async function keyReleased(){
 		}
 		case GAME_STATE.WAITING_FOR_START:{
 			if(keyCode === SPACE){
-				sendReadyToPeer();
+				gameDataChannel.sendReadyToPeer();
 				state = GAME_STATE.WAITING_FOR_OTHER_READY;
 				await gameDataChannel.otherReady;
-				state = GAME_STATE.PLAYING;
-			}
-			break;
-		}
-		case GAME_STATE.PLAYING: {
-			if(keyCode === 32){
-				resetBall();
+				state = GAME_STATE.WAITING_FOR_INITIATOR_START;
+				if(initiator){
+					gameDataChannel.scheduleStart(START_DELAY);
+				}
 			}
 			break;
 		}
@@ -113,6 +115,10 @@ function draw() {
 			timeSync();
 			break;
 		}
+		case GAME_STATE.COUNTDOWN:{
+			countDown();
+			break;
+		}
 		case GAME_STATE.WAITING_FOR_OTHER_READY:{
 			waitingForOtherReady();
 			break;
@@ -121,12 +127,10 @@ function draw() {
 			waitingForStart();
 			break;
 		}
-
 		case GAME_STATE.PLAYING: {
 			playing();
 			break;
 		}
-
 		case GAME_STATE.SCORE_INTERVAL: {
 			scoreInterval();
 			break;
@@ -146,7 +150,7 @@ function waitingForConnection(){
 }
 
 function timeSync(){
-	centeredTxt(`You control the ${userLeft?'left':'right'} paddle`, height/4);
+	centeredTxt(`You control the ${initiator?'left':'right'} paddle`, height/4);
 	centeredTxt(`Hi ${me.name}, you're connected to ${other.name}`, 3 * height/4);
 	const centerTxt = gameDataChannel.rtt ? `RTT is ${gameDataChannel.rtt}ms` : 'Syncing Time...';
 	centeredTxt(centerTxt);
@@ -154,16 +158,30 @@ function timeSync(){
 
 function waitingForStart(){
 	drawGameObjects();
-	centeredTxt(`You control the ${userLeft?'left':'right'} paddle`, height/4);
+	centeredTxt(`You control the ${initiator?'left':'right'} paddle`, height/4);
 	centeredTxt("Press SPACE to ready up");
 	centeredTxt(`Hi ${me.name}, you're connected to ${other.name}`, 3 * height/4);
 }
 
 function waitingForOtherReady(){
 	drawGameObjects();
-	centeredTxt(`You control the ${userLeft?'left':'right'} paddle`, height/4);
+	centeredTxt(`You control the ${initiator?'left':'right'} paddle`, height/4);
 	centeredTxt("Waiting for opponent ready");
 	centeredTxt(`Hi ${me.name}, you're connected to ${other.name}`, 3 * height/4);
+}
+
+function countDown(){
+	const timeLeft = (timeToStart - millis()) / 1000;
+
+	const countDown = Math.round(timeLeft);
+
+	if(countDown <= 0){
+		state = GAME_STATE.PLAYING;
+	} else {
+		drawGameObjects();
+		const txt = "Game start in " + countDown;
+		centeredTxt(txt);
+	}	
 }
 
 function playing(){
@@ -178,11 +196,11 @@ function playing(){
 	ball.checkCollision(paddles.left, paddles.right, dtSec);
 	ball.update(dtSec);
 	ball.draw();
-	if(userLeft){
-		sendPaddleUpdate(paddles.left);
-		sendBallUpdate();
+	if(initiator){
+		gameDataChannel.sendPaddleUpdate(paddles.left);
+		gameDataChannel.sendBallUpdate();
 	} else {
-		sendPaddleUpdate(paddles.right);
+		gameDataChannel.sendPaddleUpdate(paddles.right);
 	}
 
 	lastScoreResult = ball.scoreResult();
