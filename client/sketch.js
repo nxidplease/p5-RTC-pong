@@ -31,7 +31,7 @@ const GAME_STATE = {
 let timeToStart;
 let state = GAME_STATE.NAME_INPUT;
 let lastScoreMillis;
-let lastScoreResult;
+let scorer;
 
 function setup() {
 	noLoop();
@@ -51,7 +51,7 @@ function setupGame(leftUserName, rightUserName){
 }
 
 function resetBall(){
-	ball = new Ball(createVector(width/2, height/2));
+	ball.reset(createVector(width/2, height/2));
 }
 
 function resetGame(){
@@ -63,7 +63,7 @@ async function keyReleased(){
 	switch(state){
 		case GAME_STATE.NAME_INPUT:{
 			if(keyCode === ENTER){
-				const inputNotEmpty = input => input.value().trim().length > 0
+				const inputNotEmpty = input => input.value().trim().length > 0;
 				if(inputNotEmpty(userNameInput) && inputNotEmpty(serverAddressInput)){
 					messanger = new WsService(userNameInput.value(), serverAddressInput.value());
 					inputDiv.remove();
@@ -179,7 +179,7 @@ function countDown(){
 		state = GAME_STATE.PLAYING;
 	} else {
 		drawGameObjects();
-		const txt = "Game start in " + countDown;
+		const txt = "Game starts in " + countDown;
 		centeredTxt(txt);
 	}	
 }
@@ -204,13 +204,16 @@ function playing(){
 	}
 
 	if(initiator){
-		lastScoreResult = ball.scoreResult();
+		const scoreResult = ball.scoreResult();
 	
-		if(lastScoreResult !== SCORE_RESULT.NO_SCORE){
+		if(scoreResult !== SCORE_RESULT.NO_SCORE){
+			const leftScored = scoreResult === SCORE_RESULT.LEFT_SCORED;
+			scorer = leftScored ? me.name : other.name;
 			lastScoreMillis = new Date().getTime();
-			gameDataChannel.sendScore(lastScoreResult, lastScoreMillis);
-			state = GAME_STATE.SCORE_INTERVAL;
 			resetGame();
+			gameDataChannel.sendScore(scorer,lastScoreMillis);
+			gameDataChannel.sendBallUpdate();
+			state = GAME_STATE.SCORE_INTERVAL;
 		}
 
 	}
@@ -230,9 +233,8 @@ function scoreInterval(){
 		state = GAME_STATE.PLAYING;
 	} else {
 		drawGameObjects();
-		const scorer = lastScoreResult === SCORE_RESULT.LEFT_SCORED ? "Left" : "Right";
 		const scoredTxt = scorer + " scored!";
-		const txt = "Game start in " + countDown;
+		const txt = "Game starts in " + countDown;
 		centeredTxt(txt);
 		centeredTxt(scoredTxt, height/4);
 	}

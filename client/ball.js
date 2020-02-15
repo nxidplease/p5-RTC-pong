@@ -12,9 +12,13 @@ const SCORE_RESULT = {
 
 class Ball {
 	constructor(pos){
+		this.reset(pos)
+		this.color = color(175,0,0);
+	}
+
+	reset(pos){
 		this.pos = pos;
 		this.vel = vecMult(this.generateVel(), BALL_SPEED);
-		this.color = color(175,0,0);
 	}
 
 	generateVel(){

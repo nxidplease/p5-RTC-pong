@@ -159,16 +159,16 @@ class GameDataChannel{
 	}
 
 	handleScore(msg){
-		lastScoreResult = msg.lastScoreResult;
+		scorer = msg.scorer;
 		lastScoreMillis = msg.lastScoreMillis;
 		resetGame();
 		state = GAME_STATE.SCORE_INTERVAL;
 	}
 
-	sendScore(lastScoreResult, lastScoreMillis){
+	sendScore(scorer, lastScoreMillis){
 		this.sendToPeer({
 			type: PeerMsgType.Score,
-			lastScoreResult,
+			scorer,
 			lastScoreMillis
 		})	
 	}
