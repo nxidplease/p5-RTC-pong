@@ -215,6 +215,15 @@ function drawGameObjects(){
 	ball.draw();
 }
 
+function drawBounds(){
+	push();
+	stroke(0);
+	strokeWeight(2);
+	noFill();
+	rect(width/2, height/2, width, height);
+	pop();
+}
+
 function waitingForConnection(){
 	centeredTxt("Waiting for opponent to connect...");
 }
@@ -227,6 +236,7 @@ function timeSync(){
 }
 
 function waitingForStart(){
+	drawBounds();
 	drawGameObjects();
 	centeredTxt(`You control the ${initiator?'left':'right'} paddle`, height/4);
 	centeredTxt("Press SPACE to ready up");
@@ -234,6 +244,7 @@ function waitingForStart(){
 }
 
 function waitingForOtherReady(){
+	drawBounds();
 	drawGameObjects();
 	centeredTxt(`You control the ${initiator?'left':'right'} paddle`, height/4);
 	centeredTxt("Waiting for opponent ready");
@@ -248,6 +259,7 @@ function countDown(){
 	if(countDown <= 0){
 		state = GAME_STATE.PLAYING;
 	} else {
+		drawBounds();
 		drawGameObjects();
 		const txt = "Game starts in " + countDown;
 		centeredTxt(txt);
@@ -255,6 +267,7 @@ function countDown(){
 }
 
 function playing(){
+	drawBounds();
 	const dtSec = deltaTime;
 	handleControls(userPaddle, dtSec);
 	Object.values(paddles).forEach((p) => {
@@ -302,6 +315,7 @@ function scoreInterval(){
 	if(countDown <= 0){
 		state = GAME_STATE.PLAYING;
 	} else {
+		drawBounds();
 		drawGameObjects();
 		const scoredTxt = scorer + " scored!";
 		const txt = "Game starts in " + countDown;
