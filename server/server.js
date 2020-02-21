@@ -9,6 +9,10 @@ wss.on('connection', (ws) => {
 	console.log("new connection");
 
 	ws.pending = [];
+
+	if(connections.length == 2){
+		ws.close();
+	}
 	
 	connections.push(ws);
 

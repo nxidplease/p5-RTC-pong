@@ -14,11 +14,12 @@ class Ball {
 	constructor(pos){
 		this.reset(pos)
 		this.color = color(175,0,0);
+		this.scaledRadius = BALL_RADIUS * resolutionRationToDefault;
 	}
 
 	reset(pos){
 		this.pos = pos;
-		this.vel = vecMult(this.generateVel(), BALL_SPEED);
+		this.vel = vecMult(this.generateVel(), BALL_SPEED * resolutionRationToDefault);
 	}
 
 	generateVel(){
@@ -31,7 +32,7 @@ class Ball {
 	}
 
 	checkCollision(leftPaddle, rightPaddle, dt){
-		const adjustedPos = vecAdd(this.pos, vecMult(this.vel, BALL_RADIUS));
+		const adjustedPos = vecAdd(this.pos, vecMult(this.vel, this.scaledRadius));
 		const currPosToNextPos = this.pointToNextPoint(adjustedPos, dt);
 
 		this.collideWithPaddle(currPosToNextPos, leftPaddle, true);
@@ -81,8 +82,8 @@ class Ball {
 	}
 
 	update(dt){
-		const overBot = this.pos.y + this.vel.y + BALL_RADIUS > height;
-		const overTop = this.pos.y + this.vel.y - BALL_RADIUS < 0;
+		const overBot = this.pos.y + this.vel.y + this.scaledRadius > height;
+		const overTop = this.pos.y + this.vel.y - this.scaledRadius < 0;
 		if(overTop || overBot){
 			this.vel.y *= -1;
 		}
@@ -93,6 +94,6 @@ class Ball {
 	draw(){
 		fill(this.color);
 		noStroke();
-		circle(this.pos.x, this.pos.y, BALL_RADIUS * 2);
+		circle(this.pos.x, this.pos.y, this.scaledRadius * 2);
 	}
 }

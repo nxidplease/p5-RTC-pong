@@ -12,45 +12,47 @@ class Paddle{
 		this.vel = createVector(0,0);
 		this.acc = createVector(0,0);
 		this.clr = color(0, 170, 0);
+		this.scaledHeight = PADDLE_HEIGHT * resolutionRationToDefault;
+		this.scaledWidth = PADDLE_WIDTH * resolutionRationToDefault;
 	}
 
 	get rightEdge(){
 		return new LineSegment({
-			x: this.pos.x + PADDLE_WIDTH/2,
-			y: this.pos.y + PADDLE_HEIGHT/2
+			x: this.pos.x + this.scaledWidth/2,
+			y: this.pos.y + this.scaledHeight/2
 		},{
-			x: this.pos.x + PADDLE_WIDTH/2,
-			y: this.pos.y - PADDLE_HEIGHT/2
+			x: this.pos.x + this.scaledWidth/2,
+			y: this.pos.y - this.scaledHeight/2
 		});
 	}
 
 	get leftEdge(){
 		return new LineSegment({
-			x: this.pos.x - PADDLE_WIDTH/2,
-			y: this.pos.y + PADDLE_HEIGHT/2
+			x: this.pos.x - this.scaledWidth/2,
+			y: this.pos.y + this.scaledHeight/2
 		},{
-			x: this.pos.x - PADDLE_WIDTH/2,
-			y: this.pos.y - PADDLE_HEIGHT/2
+			x: this.pos.x - this.scaledWidth/2,
+			y: this.pos.y - this.scaledHeight/2
 		});
 	}
 
 	get topEdge(){
 		return new LineSegment({
-			x: this.pos.x - PADDLE_WIDTH/2,
-			y: this.pos.y - PADDLE_HEIGHT/2
+			x: this.pos.x - this.scaledWidth/2,
+			y: this.pos.y - this.scaledHeight/2
 		},{
-			x: this.pos.x + PADDLE_WIDTH/2,
-			y: this.pos.y - PADDLE_HEIGHT/2
+			x: this.pos.x + this.scaledWidth/2,
+			y: this.pos.y - this.scaledHeight/2
 		});
 	}
 
 	get bottomEdge(){
 		return new LineSegment({
-			x: this.pos.x - PADDLE_WIDTH/2,
-			y: this.pos.y + PADDLE_HEIGHT/2
+			x: this.pos.x - this.scaledWidth/2,
+			y: this.pos.y + this.scaledHeight/2
 		},{
-			x: this.pos.x + PADDLE_WIDTH/2,
-			y: this.pos.y + PADDLE_HEIGHT/2
+			x: this.pos.x + this.scaledWidth/2,
+			y: this.pos.y + this.scaledHeight/2
 		});
 	}
 
@@ -68,7 +70,7 @@ class Paddle{
 
 	update(dt){
 		this.vel.add(p5.Vector.mult(this.acc, dt));
-		this.vel.limit(MAX_VEL);
+		this.vel.limit(MAX_VEL * resolutionRationToDefault);
 
 		if(this.acc.y == 0){
 			this.vel.mult(REATAINED_VEL);
@@ -76,26 +78,26 @@ class Paddle{
 
 		this.pos.add(p5.Vector.mult(this.vel, dt));
 
-		if(this.pos.y < PADDLE_HEIGHT / 2){
-			this.pos.y = PADDLE_HEIGHT / 2;
+		if(this.pos.y < this.scaledHeight / 2){
+			this.pos.y = this.scaledHeight / 2;
 		}
 
-		if(this.pos.y > height - PADDLE_HEIGHT / 2){
-			this.pos.y = height - PADDLE_HEIGHT / 2;
+		if(this.pos.y > height - this.scaledHeight / 2){
+			this.pos.y = height - this.scaledHeight / 2;
 		}
 	}
 
 	draw(){
 		fill(this.clr);
 		stroke(0);
-		rect(this.pos.x, this.pos.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+		rect(this.pos.x, this.pos.y, this.scaledWidth, this.scaledHeight);
 	}
 
 	up(dt){
-		this.acc.y = -CONTROL_ACCEL * dt;
+		this.acc.y = -CONTROL_ACCEL * resolutionRationToDefault * dt;
 	}
 
 	down(dt){
-		this.acc.y = CONTROL_ACCEL * dt;
+		this.acc.y = CONTROL_ACCEL * resolutionRationToDefault * dt;
 	}
 }

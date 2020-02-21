@@ -13,6 +13,58 @@ const ENTER = 13;
 const SPACE = 32;
 const INTERVAL_TIME = 5;
 
+const DEFAULT_WIDTH = 2560;
+const DEFAULT_HEIGHT = 1440;
+
+const resolutions = [{
+	w: 2560,
+	h: 1440
+},{
+	w: 2048,
+	h: 1152
+},{
+	w: 1920, 
+	h: 1080
+},{
+	w: 1600,
+	h: 900
+},{
+	w: 1366,
+	h: 768
+},{
+	w: 1280,
+	h: 720
+},{
+	w: 1024,
+	h: 575
+},{
+	w: 960,
+	h: 854
+},{
+	w: 854,
+	h: 480
+},{
+	w: 848,
+	h: 480
+},{
+	w: 800,
+	h: 450
+},{
+	w: 768,
+	h: 432
+},{
+	w: 640,
+	h: 360
+},{
+	w: 426,
+	h: 240
+},{
+	w: 256,
+	h: 144
+}];
+
+let resolutionRationToDefault;
+
 const START_DELAY = 10;
 
 const GAME_STATE = {
@@ -59,6 +111,24 @@ function resetGame(){
 	resetBall();
 }
 
+function chooseRes(){
+	for(let i = 0; i < resolutions.length; i++){
+		const r = resolutions[i];
+		if((i == resolutions.length - 1) || 
+			((r.w <= windowWidth) && 
+			 (r.h <= windowHeight))){
+				 return r;
+			 }
+	}
+}
+
+function setupCanvas(){
+	const r = chooseRes();
+	resolutionRationToDefault = r.w / DEFAULT_WIDTH;
+	createCanvas(r.w, r.h);
+	console.log(width, height, resolutionRationToDefault);
+}
+
 async function keyReleased(){
 	switch(state){
 		case GAME_STATE.NAME_INPUT:{
@@ -67,7 +137,7 @@ async function keyReleased(){
 				if(inputNotEmpty(userNameInput) && inputNotEmpty(serverAddressInput)){
 					messanger = new WsService(userNameInput.value(), serverAddressInput.value());
 					inputDiv.remove();
-					createCanvas(windowWidth, windowHeight);
+					setupCanvas();
 					loop();
 					state = GAME_STATE.WAITING_FOR_CONNECTION;
 					Promise.all([messanger.numsReceieved, messanger.otherNameReceived])
