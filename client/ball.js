@@ -17,6 +17,15 @@ class Ball {
 		this.reset(pos)
 		this.color = color(175,0,0);
 		this.scaledRadius = BALL_RADIUS * resolutionRationToDefault;
+		const v = audio.createOscillator();
+		const u = audio.createGain()
+		v.connect(u);
+		v.frequency.value=600;
+		v.type="square";
+		u.connect(audio.destination);
+		u.gain.value = 0;
+		v.start(audio.currentTime);
+		this.env = new AREnvelope(audio, u.gain);
 	}
 
 	reset(pos){
@@ -77,15 +86,7 @@ class Ball {
 	}
 
 	ping(){
-		const v = audio.createOscillator();
-		const u = audio.createGain()
-		v.connect(u);
-		v.frequency.value=600;
-		v.type="square";
-		u.connect(audio.destination);
-		u.gain.value = 0.5;
-		v.start(audio.currentTime);
-		v.stop(audio.currentTime + 0.200);
+		this.env.play(0.100, 0.100);
 	}
 
 	pointToNextPoint(p, dt){
