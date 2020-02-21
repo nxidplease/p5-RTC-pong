@@ -10,6 +10,8 @@ const SCORE_RESULT = {
 	RIGHT_SCORED: 2
 }
 
+let audio;
+
 class Ball {
 	constructor(pos){
 		this.reset(pos)
@@ -65,11 +67,25 @@ class Ball {
 				this.vel.y = p.vel.y;
 				this.vel.limit(BALL_SPEED);
 			}
+			this.ping();
 
 		} else if(segmentsIntersect(p.topEdge, currPosToNextPos) || 
 				  segmentsIntersect(p.bottomEdge, currPosToNextPos)){
 			this.vel.y *= -1;
+			this.ping();
 		}
+	}
+
+	ping(){
+		const v = audio.createOscillator();
+		const u = audio.createGain()
+		v.connect(u);
+		v.frequency.value=600;
+		v.type="square";
+		u.connect(audio.destination);
+		u.gain.value = 0.5;
+		v.start(audio.currentTime);
+		v.stop(audio.currentTime + 0.200);
 	}
 
 	pointToNextPoint(p, dt){
@@ -86,6 +102,7 @@ class Ball {
 		const overTop = this.pos.y + this.vel.y - this.scaledRadius < 0;
 		if(overTop || overBot){
 			this.vel.y *= -1;
+			this.ping();
 		}
 
 		this.pos.add(p5.Vector.mult(this.vel, dt));

@@ -65,7 +65,7 @@ const resolutions = [{
 
 let resolutionRationToDefault;
 
-const START_DELAY = 10;
+const START_DELAY = 5;
 
 const GAME_STATE = {
 	NAME_INPUT: 0,
@@ -133,6 +133,7 @@ async function keyReleased(){
 	switch(state){
 		case GAME_STATE.NAME_INPUT:{
 			if(keyCode === ENTER){
+				audio = new AudioContext();
 				const inputNotEmpty = input => input.value().trim().length > 0;
 				if(inputNotEmpty(userNameInput) && inputNotEmpty(serverAddressInput)){
 					messanger = new WsService(userNameInput.value(), serverAddressInput.value());
